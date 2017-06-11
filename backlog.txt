@@ -1,7 +1,6 @@
-- explosions
-- coin animation
 - make/integrate "calculateIsInCycle" method (the key method)
 - swap algorithm for one in constant memory space
+- add option to switch arrows
 - include UI controls to play, pause, reset, resize, shuffle
 - organize code:
   - follow typescript best practices
