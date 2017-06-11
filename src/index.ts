@@ -55,6 +55,17 @@ function generateBoard() {
             stage.addChild(board[y][x]);
         }
     }
+    randomizeBoard();
+}
+
+function randomizeBoard() {
+    for (var y = 0; y < boardSize; ++y) {
+        for (var x = 0; x < boardSize; ++x) {
+            var type = Math.floor(Math.random() * 4);
+            board[y][x].arrow.texture = arrowTextures[type];
+            board[y][x].arrow.type = type;
+        }
+    }
 }
 
 function execFrame() {
