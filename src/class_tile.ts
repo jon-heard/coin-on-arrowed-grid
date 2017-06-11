@@ -3,8 +3,8 @@ const COIN_MEMORY_ALPHA = .35;
 
 export class Tile {
     constructor(
-            resources, stage,
-            tileType:number, x:number, y:number,
+            resources, stage : PIXI.Container,
+            tileType : number, x : number, y : number,
             onClickCallback, arrowType:number = 0) {
         // static
         if (Tile.arrowTextures == null) {
@@ -42,24 +42,35 @@ export class Tile {
             this.tileSprite.on('mouseup', onClickCallback);
     }
 
-    public getArrowType() : number { return this.arrowType; }
+    public destroy() {
+        this.tileSprite.destroy();
+        this.arrowSprite.destroy();
+        this.coinMemorySprite.destroy();
+    }
+
     public getX() : number { return this.x; }
     public getY() : number { return this.y; }
+    public getArrowType() : number { return this.arrowType; }
     public getNeighbor(index : number) : Tile { return this.neighbors[index]; }
     public getPointedNeighbor() : Tile { return this.neighbors[this.arrowType]; }
     public getHasCoinMemory() : boolean { return this.hasCoinMemory; }
-
-    public setArrowType(value : number) {
-        if (value < 0 || value > 3) { return; } // TODO: Error reporting
-        this.arrowType = value;
-        this.arrowSprite.texture = Tile.arrowTextures[value];
-    }
 
     public setPosition(x : number, y : number) {
         this.x = x;
         this.y = y;
         this.tileSprite.position.x = x;
         this.tileSprite.position.y = y;
+    }
+
+    public randomizeArrowType() {
+        var type = Math.floor(Math.random() * 4);
+        this.setArrowType(type);
+    }
+
+    public setArrowType(value : number) {
+        if (value < 0 || value > 3) { return; } // TODO: Error reporting
+        this.arrowType = value;
+        this.arrowSprite.texture = Tile.arrowTextures[value];
     }
 
     public setNeighbor(index : number, neighbor : Tile) {

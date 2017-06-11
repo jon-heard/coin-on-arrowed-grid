@@ -1,7 +1,15 @@
 
+const HELP_OFFSET_X = 10;
+const HELP_OFFSET_Y = 10;
+const BOARD_POSITION_X = 10;
+const BOARD_POSITION_Y = 70;
+const BOARD_INITIAL_SIZE = 10;
+const FRAME_SPEED = 100;
+
 /// <reference path="../typings/index.d.ts" />
 import PIXI = require('pixi.js');
 //import audio = require('pixi-sound');
+import { Board } from "./class_board";
 import { Tile } from "./class_tile";
 
 // global vars
@@ -9,24 +17,15 @@ import { Tile } from "./class_tile";
     const renderer:PIXI.WebGLRenderer = new PIXI.WebGLRenderer(3000, 3000);
     const stage:PIXI.Container = new PIXI.Container();
     // game constants
-    const HELP_OFFSET_X = 10;
-    const HELP_OFFSET_Y = 10;
-    const BOARD_OFFSET_X = 10;
-    const BOARD_OFFSET_Y = 70;
-    const BOARD_PADDING_X = 2;
-    const BOARD_PADDING_Y = 2;
-    const FRAME_SPEED = 100;
     const coinAnimationFrames = [[0,3,4,0],[0,1,2,0],[0,4,3,0],[0,2,1,0]];
     // game resources
     let resources:any;
     var fontStyle;
-    var arrowTextures;
     var explosionTextures;
     var coinTextures;
     var helpText;
     // game state
-    var boardSize = 10;
-    var board = [];
+    var board;
     var coin;
     var explosion;
     var frameTime = 0;
@@ -63,11 +62,6 @@ function initialize() {
 }
 
 function setupTextureResources() {
-    arrowTextures = [];
-    arrowTextures[0] = resources.arrow_up.texture;
-    arrowTextures[1] = resources.arrow_right.texture;
-    arrowTextures[2] = resources.arrow_down.texture;
-    arrowTextures[3] = resources.arrow_left.texture;
     explosionTextures = [];
     explosionTextures[0] = resources.explosion_1.texture;
     explosionTextures[1] = resources.explosion_2.texture;
@@ -97,29 +91,10 @@ function setupUi() {
 }
 
 function setupBoard() {
-    // Setup board sprites
-    for (var y = 0; y < boardSize; ++y) {
-        board[y] = [];
-        for (var x = 0; x < boardSize; ++x) {
-            // tile
-            var tileType = ((x + y) % 2);
-            var positionX = x * (64 + BOARD_PADDING_X) + BOARD_OFFSET_X;
-            var positionY = y * (64 + BOARD_PADDING_Y) + BOARD_OFFSET_Y;
-            board[y][x] = new Tile(resources, stage, tileType, positionX, positionY, onBoardClick);
-        }
-    }
-    // Setup neighbor links
-    for (var y = 0; y < boardSize; ++y) {
-        for (var x = 0; x < boardSize; ++x) {
-            var tile = board[y][x];
-            tile.neighbor = [];
-            if (y > 0)           { tile.setNeighbor(0, board[y-1][x]); }
-            if (x < boardSize-1) { tile.setNeighbor(1, board[y][x+1]); }
-            if (y < boardSize-1) { tile.setNeighbor(2, board[y+1][x]); }
-            if (x > 0)           { tile.setNeighbor(3, board[y][x-1]); }
-        }
-    }
-    randomizeBoard();
+    board = new Board(
+            resources, stage, onBoardClick,
+            BOARD_INITIAL_SIZE, BOARD_POSITION_X, BOARD_POSITION_Y);
+    board.randomize();
 }
 
 function setupCoinAndExplosion() {
@@ -131,15 +106,6 @@ function setupCoinAndExplosion() {
     explosion.frame = -1;
     explosion.visible = false;
     stage.addChild(explosion);
-}
-
-function randomizeBoard() {
-    for (var y = 0; y < boardSize; ++y) {
-        for (var x = 0; x < boardSize; ++x) {
-            var type = Math.floor(Math.random() * 4);
-            board[y][x].setArrowType(type);
-        }
-    }
 }
 
 function onBoardClick(event) {
@@ -174,11 +140,7 @@ function runFrameLogic() {
         }
         // Remove coin (if applicable)
         if (!newTile || explosion.visible) {
-            for (var y = 0; y < boardSize; ++y) {
-                for (var x = 0; x < boardSize; ++x) {
-                    board[y][x].setHasCoinMemory(false);
-                }
-            }
+            board.clearCoinMemory();
             if (!explosion.visible) {
                 coin.visible = false;
                 coin.frame = -1;
