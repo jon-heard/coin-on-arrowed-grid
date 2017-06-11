@@ -1,6 +1,8 @@
+
 /// <reference path="../typings/index.d.ts" />
 import PIXI = require('pixi.js');
 //import audio = require('pixi-sound');
+
 
 // global vars
     // system
@@ -17,7 +19,7 @@ import PIXI = require('pixi.js');
     // game resources
     let resources:any;
     var fontStyle;
-    var arrowTextures = [];
+    var arrowTextures;
     var helpText;
     // game state
     var boardSize = 10;
@@ -25,13 +27,15 @@ import PIXI = require('pixi.js');
     var coin;
     var coinTrail = [];
     var frameTime = 0;
+
+
 function initialize() {
     // System
     document.body.appendChild(renderer.view);
     // Textures
     PIXI.loader
         .add('tile1', 'images/tile_blue.png')
-        .add('tile2', 'images/tile_red.png')
+        .add('tile2', 'images/tile_green.png')
         .add('arrow_up', 'images/arrow_up.png')
         .add('arrow_right', 'images/arrow_right.png')
         .add('arrow_down', 'images/arrow_down.png')
@@ -39,18 +43,23 @@ function initialize() {
         .add('coin',    'images/coin.png')
         .load(function (loader:PIXI.loaders.Loader, newResources:any) {
             resources = newResources;
-            arrowTextures[0] = resources.arrow_up.texture;
-            arrowTextures[1] = resources.arrow_right.texture;
-            arrowTextures[2] = resources.arrow_down.texture;
-            arrowTextures[3] = resources.arrow_left.texture;
-            generateUi();
-            generateBoard();
-            generateCoin();
+            setupArrows();
+            setupUi();
+            setupBoard();
+            setupCoin();
             runAnimation(0);
         });
 }
 
-function generateUi() {
+function setupArrows() {
+    arrowTextures = [];
+    arrowTextures[0] = resources.arrow_up.texture;
+    arrowTextures[1] = resources.arrow_right.texture;
+    arrowTextures[2] = resources.arrow_down.texture;
+    arrowTextures[3] = resources.arrow_left.texture;
+}
+
+function setupUi() {
     // Setup style
     fontStyle = new PIXI.TextStyle({
         fontFamily: 'Arial',
@@ -64,11 +73,12 @@ function generateUi() {
     stage.addChild(helpText);
 }
 
-function generateBoard() {
-    // Setup sprites
+function setupBoard() {
+    // Setup board sprites
     for (var y = 0; y < boardSize; ++y) {
         board[y] = [];
         for (var x = 0; x < boardSize; ++x) {
+            // tile
             var tileTexture = ((x + y) % 2 == 0) ? resources.tile1.texture : resources.tile2.texture;
             var positionX = x * (64 + BOARD_PADDING_X) + BOARD_OFFSET_X;
             var positionY = y * (64 + BOARD_PADDING_Y) + BOARD_OFFSET_Y;
@@ -76,13 +86,15 @@ function generateBoard() {
             var tile = board[y][x];
             tile.position.x = positionX;
             tile.position.y = positionY;
+            stage.addChild(tile);
+            // arrow
             tile.arrow = new PIXI.Sprite(arrowTextures[2]);
             tile.arrowType = 2;
             tile.addChild(tile.arrow);
+            // mouse clicks
             tile.interactive = true;
             tile.buttonMode = true;
             tile.on('mouseup', onBoardClick);
-            stage.addChild(tile);
         }
     }
     // Setup neighbor links
@@ -99,7 +111,7 @@ function generateBoard() {
     randomizeBoard();
 }
 
-function generateCoin() {
+function setupCoin() {
     coin = new PIXI.Sprite(resources.coin.texture);
     coin.visible = false;
     stage.addChild(coin);
@@ -117,8 +129,9 @@ function randomizeBoard() {
 
 function onBoardClick(event) {
     var tile = event.target;
-    coin.tile = tile;
-    coin.position = tile.position;
+    // On click, place the coin
+    coin.tile = tile; 
+    coin.position = tile.position; 
     coin.visible = true;
 }
 
@@ -138,7 +151,7 @@ function runFrameLogic() {
             coin.tile = tile;
             coin.position = tile.position;
         }
-        // remove coin
+        // Check for trail loop
         var isOnCoinTrail = false;
         for (var i = 0; i < coinTrail.length; ++i) {
             if (coinTrail[i].tile == coin.tile) {
@@ -146,6 +159,7 @@ function runFrameLogic() {
                 break;
             }
         }
+        // Remove coin (if applicable
         if (!tile || isOnCoinTrail) {
             coin.visible = false;
             while (coinTrail.length > 0) {
@@ -158,12 +172,14 @@ function runFrameLogic() {
 }
 
 function runAnimation(timeStamp) {
+    // call "runFrameLogic()" at FRAME_SPEED intervals
     if (timeStamp-frameTime > FRAME_SPEED) {
         frameTime = timeStamp;
         runFrameLogic();
     }
-    requestAnimationFrame(runAnimation);
+    // Render and loop
     renderer.render(stage);
+    requestAnimationFrame(runAnimation);
 }
 
 initialize();
