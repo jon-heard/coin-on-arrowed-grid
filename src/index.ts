@@ -13,6 +13,7 @@ import PIXI = require('pixi.js');
     const BOARD_OFFSET_Y = 70;
     const BOARD_PADDING_X = 4;
     const BOARD_PADDING_Y = 4;
+    const FRAME_SPEED = 100;
     // game resources
     let resources:any;
     var fontStyle;
@@ -21,6 +22,8 @@ import PIXI = require('pixi.js');
     // game state
     var boardSize = 10;
     var board = [];
+    var coin;
+    var frameTime = 0;
 function initialize() {
     // System
     document.body.appendChild(renderer.view);
@@ -41,7 +44,8 @@ function initialize() {
             arrowTextures[3] = resources.arrow_left.texture;
             generateUi();
             generateBoard();
-            execFrame();
+            generateCoin();
+            runAnimation(0);
         });
 }
 
@@ -57,7 +61,6 @@ function generateUi() {
     helpText.x = HELP_OFFSET_X;
     helpText.y = HELP_OFFSET_Y;
     stage.addChild(helpText);
-    console.log("Helo?");
 }
 
 function generateBoard() {
@@ -77,7 +80,7 @@ function generateBoard() {
             tile.addChild(tile.arrow);
             tile.interactive = true;
             tile.buttonMode = true;
-            tile.on('mouseup', boardClick);
+            tile.on('mouseup', onBoardClick);
             stage.addChild(tile);
         }
     }
@@ -95,6 +98,12 @@ function generateBoard() {
     randomizeBoard();
 }
 
+function generateCoin() {
+    coin = new PIXI.Sprite(resources.coin.texture);
+    coin.visible = false;
+    stage.addChild(coin);
+}
+
 function randomizeBoard() {
     for (var y = 0; y < boardSize; ++y) {
         for (var x = 0; x < boardSize; ++x) {
@@ -105,18 +114,32 @@ function randomizeBoard() {
     }
 }
 
-function boardClick(event) {
+function onBoardClick(event) {
     var tile = event.target;
-    tile = tile.neighbor[tile.arrowType];
-    if (tile == null) {
-    } else {
-        tile.coin = new PIXI.Sprite(resources.coin.texture);
-        tile.addChild(tile.coin);
+    coin.tile = tile;
+    coin.position = tile.position;
+    coin.visible = true;
+}
+
+function runFrameLogic() {
+    if (coin.visible) {
+        var tile = coin.tile;
+        tile = tile.neighbor[tile.arrowType];
+        if (tile) {
+            coin.tile = tile;
+            coin.position = tile.position;
+        } else {
+            coin.visible = false;
+        }
     }
 }
 
-function execFrame() {
-    requestAnimationFrame(execFrame);
+function runAnimation(timeStamp) {
+    if (timeStamp-frameTime > FRAME_SPEED) {
+        frameTime = timeStamp;
+        runFrameLogic();
+    }
+    requestAnimationFrame(runAnimation);
     renderer.render(stage);
 }
 
