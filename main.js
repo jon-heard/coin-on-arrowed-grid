@@ -61,7 +61,7 @@ app.on('ready', function () {
     //set the context menu
     Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 
-    mainWindow = new BrowserWindow({width: 1280, height: 720, resizable: true, title: 'Jibo Programming Challenge'});
+    mainWindow = new BrowserWindow({width: 740, height: 825, resizable: true, title: 'Jibo Programming Challenge'});
     mainWindow.loadURL('file://' + __dirname + '/index.html', {"extraHeaders" : "pragma: no-cache\n"});
     mainWindow.on('closed', function () {
         mainWindow = null;
