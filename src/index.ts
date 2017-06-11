@@ -4,18 +4,20 @@ const HELP_OFFSET_Y = 10;
 const BOARD_POSITION_X = 10;
 const BOARD_POSITION_Y = 70;
 const BOARD_INITIAL_SIZE = 10;
-const FRAME_SPEED = 100;
+const FRAME_RATE = 100;
 
 /// <reference path="../typings/index.d.ts" />
 import PIXI = require('pixi.js');
 //import audio = require('pixi-sound');
 import { Board } from "./class_board";
 import { Tile } from "./class_tile";
+import { Ticker } from "./class_ticker";
 
 // global vars
     // system
     const renderer:PIXI.WebGLRenderer = new PIXI.WebGLRenderer(3000, 3000);
     const stage:PIXI.Container = new PIXI.Container();
+    
     // game constants
     const coinAnimationFrames = [[0,3,4,0],[0,1,2,0],[0,4,3,0],[0,2,1,0]];
     // game resources
@@ -28,7 +30,7 @@ import { Tile } from "./class_tile";
     var board;
     var coin;
     var explosion;
-    var frameTime = 0;
+    var ticker;
 
 function initialize() {
     // System
@@ -53,27 +55,11 @@ function initialize() {
         .add('coin_vertical2',    'images/coin_vertical2.png')
         .load(function (loader:PIXI.loaders.Loader, newResources:any) {
             resources = newResources;
-            setupTextureResources();
             setupUi();
             setupBoard();
             setupCoinAndExplosion();
-            runMainLoop(0);
+            setupTicker();
         });
-}
-
-function setupTextureResources() {
-    explosionTextures = [];
-    explosionTextures[0] = resources.explosion_1.texture;
-    explosionTextures[1] = resources.explosion_2.texture;
-    explosionTextures[2] = resources.explosion_3.texture;
-    explosionTextures[3] = resources.explosion_4.texture;
-    explosionTextures[4] = resources.explosion_5.texture;
-    coinTextures = [];
-    coinTextures[0] = resources.coin.texture;
-    coinTextures[1] = resources.coin_horizontal1.texture;
-    coinTextures[2] = resources.coin_horizontal2.texture;
-    coinTextures[3] = resources.coin_vertical1.texture;
-    coinTextures[4] = resources.coin_vertical2.texture;
 }
 
 function setupUi() {
@@ -98,14 +84,34 @@ function setupBoard() {
 }
 
 function setupCoinAndExplosion() {
+    coinTextures = [];
+    coinTextures[0] = resources.coin.texture;
+    coinTextures[1] = resources.coin_horizontal1.texture;
+    coinTextures[2] = resources.coin_horizontal2.texture;
+    coinTextures[3] = resources.coin_vertical1.texture;
+    coinTextures[4] = resources.coin_vertical2.texture;
+
     coin = new PIXI.Sprite(resources.coin.texture);
     coin.frame = -1;
     coin.visible = false;
     stage.addChild(coin);
+
+    explosionTextures = [];
+    explosionTextures[0] = resources.explosion_1.texture;
+    explosionTextures[1] = resources.explosion_2.texture;
+    explosionTextures[2] = resources.explosion_3.texture;
+    explosionTextures[3] = resources.explosion_4.texture;
+    explosionTextures[4] = resources.explosion_5.texture;
+
     explosion = new PIXI.Sprite(explosionTextures[0]);
     explosion.frame = -1;
     explosion.visible = false;
     stage.addChild(explosion);
+}
+
+function setupTicker() {
+    ticker = new Ticker(FRAME_RATE, onFrame);
+    ticker.start();
 }
 
 function onBoardClick(event) {
@@ -120,7 +126,7 @@ function onBoardClick(event) {
     coin.visible = true;
 }
 
-function runFrameLogic() {
+function onFrame() {
     // animate coin
     if (coin.visible) {
       coin.frame += 1;
@@ -171,17 +177,7 @@ function runFrameLogic() {
             explosion.texture = explosionTextures[explosion.frame];
         }
     }
-}
-
-function runMainLoop(timeStamp) {
-    // call "runFrameLogic()" at FRAME_SPEED intervals
-    if (timeStamp-frameTime > FRAME_SPEED) {
-        frameTime = timeStamp;
-        runFrameLogic();
-    }
-    // Render and loop
     renderer.render(stage);
-    requestAnimationFrame(runMainLoop);
 }
 
 initialize();
