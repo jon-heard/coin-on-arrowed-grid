@@ -1,5 +1,6 @@
 /// <reference path="../typings/index.d.ts" />
 import PIXI = require('pixi.js');
+//import audio = require('pixi-sound');
 
 // global vars
     // system
