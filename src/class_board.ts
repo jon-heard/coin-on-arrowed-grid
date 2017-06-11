@@ -20,7 +20,7 @@ export class Board {
     public randomize() {
         for (var y = 0; y < this.size; ++y) {
             for (var x = 0; x < this.size; ++x) {
-                this.tiles[y][x].randomizeArrowType();
+                this.tiles[y][x].randomizeDirection();
             }
         }
     }

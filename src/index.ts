@@ -116,7 +116,7 @@ function onBoardClick(event) {
     coin.tile = tile; 
     coin.position.x = tile.getX();
     coin.position.y = tile.getY();
-    coin.direction = tile.getArrowType();
+    coin.direction = tile.getDirection();
     coin.visible = true;
 }
 
@@ -150,7 +150,7 @@ function runFrameLogic() {
             coin.tile = newTile;
             coin.position.x = newTile.getX();
             coin.position.y = newTile.getY();
-            coin.direction = newTile.getArrowType();
+            coin.direction = newTile.getDirection();
         }
     }
     // animate explosion
