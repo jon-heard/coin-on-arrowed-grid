@@ -23,6 +23,7 @@ import PIXI = require('pixi.js');
     var boardSize = 10;
     var board = [];
     var coin;
+    var coinTrail = [];
     var frameTime = 0;
 function initialize() {
     // System
@@ -124,12 +125,34 @@ function onBoardClick(event) {
 function runFrameLogic() {
     if (coin.visible) {
         var tile = coin.tile;
+        // add trail
+        var newCoinTrail = new PIXI.Sprite(resources.coin.texture);
+        coinTrail.push(newCoinTrail);
+        newCoinTrail.position = coin.position;
+        newCoinTrail["tile"] = coin.tile;
+        newCoinTrail.alpha = .5;
+        stage.addChild(newCoinTrail);
+        // move coin
         tile = tile.neighbor[tile.arrowType];
         if (tile) {
             coin.tile = tile;
             coin.position = tile.position;
-        } else {
+        }
+        // remove coin
+        var isOnCoinTrail = false;
+        for (var i = 0; i < coinTrail.length; ++i) {
+            if (coinTrail[i].tile == coin.tile) {
+                isOnCoinTrail = true;
+                break;
+            }
+        }
+        if (!tile || isOnCoinTrail) {
             coin.visible = false;
+            while (coinTrail.length > 0) {
+                var coinTrailItem = coinTrail.pop();
+                stage.removeChild(coinTrailItem);
+                coinTrailItem.destroy();
+            }
         }
     }
 }
