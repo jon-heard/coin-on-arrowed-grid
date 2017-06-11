@@ -3,18 +3,22 @@ import PIXI = require('pixi.js');
 
 // global vars
     // system
-    const renderer:PIXI.WebGLRenderer = new PIXI.WebGLRenderer(1280, 720);
+    const renderer:PIXI.WebGLRenderer = new PIXI.WebGLRenderer(3000, 3000);
     const stage:PIXI.Container = new PIXI.Container();
-    let resources:any;
     // game constants
+    const HELP_OFFSET_X = 10;
+    const HELP_OFFSET_Y = 10;
     const BOARD_OFFSET_X = 10;
-    const BOARD_OFFSET_Y = 50;
+    const BOARD_OFFSET_Y = 70;
     const BOARD_PADDING_X = 4;
     const BOARD_PADDING_Y = 4;
-    // game state
-    var boardSize = 8;
     // game resources
+    let resources:any;
+    var fontStyle;
     var arrowTextures = [];
+    var helpText;
+    // game state
+    var boardSize = 10;
     var board = [];
 function initialize() {
     // System
@@ -34,9 +38,23 @@ function initialize() {
             arrowTextures[1] = resources.arrow_right.texture;
             arrowTextures[2] = resources.arrow_down.texture;
             arrowTextures[3] = resources.arrow_left.texture;
+            generateUi();
             generateBoard();
             execFrame();
         });
+}
+
+function generateUi() {
+    fontStyle = new PIXI.TextStyle({
+        fontFamily: 'Arial',
+        fontSize: 20,
+        fill: 'white',
+    });
+    helpText = new PIXI.Text("Click on a tile to drop a coin.\nSee how long you can get it to stay before falling off the board.", fontStyle);
+    helpText.x = HELP_OFFSET_X;
+    helpText.y = HELP_OFFSET_Y;
+    stage.addChild(helpText);
+    console.log("Helo?");
 }
 
 function generateBoard() {
