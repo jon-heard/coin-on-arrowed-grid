@@ -2,7 +2,7 @@
 /// <reference path="../typings/index.d.ts" />
 import PIXI = require('pixi.js');
 //import audio = require('pixi-sound');
-
+import { Tile } from "./class_tile";
 
 // global vars
     // system
@@ -29,17 +29,15 @@ import PIXI = require('pixi.js');
     var board = [];
     var coin;
     var explosion;
-    var coinTrail = [];
     var frameTime = 0;
-
 
 function initialize() {
     // System
     document.body.appendChild(renderer.view);
     // Textures
     PIXI.loader
-        .add('tile1', 'images/tile_blue.png')
-        .add('tile2', 'images/tile_green.png')
+        .add('tile_0', 'images/tile_blue.png')
+        .add('tile_1', 'images/tile_green.png')
         .add('arrow_up', 'images/arrow_up.png')
         .add('arrow_right', 'images/arrow_right.png')
         .add('arrow_down', 'images/arrow_down.png')
@@ -104,22 +102,10 @@ function setupBoard() {
         board[y] = [];
         for (var x = 0; x < boardSize; ++x) {
             // tile
-            var tileTexture = ((x + y) % 2 == 0) ? resources.tile1.texture : resources.tile2.texture;
+            var tileType = ((x + y) % 2);
             var positionX = x * (64 + BOARD_PADDING_X) + BOARD_OFFSET_X;
             var positionY = y * (64 + BOARD_PADDING_Y) + BOARD_OFFSET_Y;
-            board[y][x] = new PIXI.Sprite(tileTexture);
-            var tile = board[y][x];
-            tile.position.x = positionX;
-            tile.position.y = positionY;
-            stage.addChild(tile);
-            // arrow
-            tile.arrow = new PIXI.Sprite(arrowTextures[2]);
-            tile.arrowType = 2;
-            tile.addChild(tile.arrow);
-            // mouse clicks
-            tile.interactive = true;
-            tile.buttonMode = true;
-            tile.on('mouseup', onBoardClick);
+            board[y][x] = new Tile(resources, stage, tileType, positionX, positionY, onBoardClick);
         }
     }
     // Setup neighbor links
@@ -127,10 +113,10 @@ function setupBoard() {
         for (var x = 0; x < boardSize; ++x) {
             var tile = board[y][x];
             tile.neighbor = [];
-            if (y > 0)           { tile.neighbor[0] = board[y-1][x]; }
-            if (x < boardSize-1) { tile.neighbor[1] = board[y][x+1]; }
-            if (y < boardSize-1) { tile.neighbor[2] = board[y+1][x]; }
-            if (x > 0)           { tile.neighbor[3] = board[y][x-1]; }
+            if (y > 0)           { tile.setNeighbor(0, board[y-1][x]); }
+            if (x < boardSize-1) { tile.setNeighbor(1, board[y][x+1]); }
+            if (y < boardSize-1) { tile.setNeighbor(2, board[y+1][x]); }
+            if (x > 0)           { tile.setNeighbor(3, board[y][x-1]); }
         }
     }
     randomizeBoard();
@@ -151,20 +137,20 @@ function randomizeBoard() {
     for (var y = 0; y < boardSize; ++y) {
         for (var x = 0; x < boardSize; ++x) {
             var type = Math.floor(Math.random() * 4);
-            board[y][x].arrow.texture = arrowTextures[type];
-            board[y][x].arrowType = type;
+            board[y][x].setArrowType(type);
         }
     }
 }
 
 function onBoardClick(event) {
-    var tile = event.target;
+    var tile = event.target.tile;
     // remove the explosion (if still visible)
     explosion.visible = false;
     // place the coin
     coin.tile = tile; 
-    coin.position = tile.position;
-    coin.direction = tile.arrowType;
+    coin.position.x = tile.getX();
+    coin.position.y = tile.getY();
+    coin.direction = tile.getArrowType();
     coin.visible = true;
 }
 
@@ -179,29 +165,19 @@ function runFrameLogic() {
     if (coin.visible && coin.frame == 2 && !explosion.visible) {
         var tile = coin.tile;
         // add to coin trail
-        var newCoinTrail = new PIXI.Sprite(resources.coin.texture);
-        coinTrail.push(newCoinTrail);
-        newCoinTrail.position = coin.position;
-        newCoinTrail["tile"] = coin.tile;
-        newCoinTrail.alpha = .35;
-        stage.addChild(newCoinTrail);
+          coin.tile.setHasCoinMemory(true);
         // Get new position
-        var newTile = tile.neighbor[tile.arrowType];
+        var newTile = tile.getPointedNeighbor();
         // Check for trail loop
-        if (newTile) {
-          for (var i = 0; i < coinTrail.length; ++i) {
-              if (coinTrail[i].tile == newTile) {
-                  explosion.visible = true;
-                  break;
-              }
-          }
+        if (newTile != null && newTile.getHasCoinMemory()) {
+            explosion.visible = true;
         }
         // Remove coin (if applicable)
         if (!newTile || explosion.visible) {
-            while (coinTrail.length > 0) {
-                var coinTrailItem = coinTrail.pop();
-                stage.removeChild(coinTrailItem);
-                coinTrailItem.destroy();
+            for (var y = 0; y < boardSize; ++y) {
+                for (var x = 0; x < boardSize; ++x) {
+                    board[y][x].setHasCoinMemory(false);
+                }
             }
             if (!explosion.visible) {
                 coin.visible = false;
@@ -210,8 +186,9 @@ function runFrameLogic() {
         // move coin
         } else {
             coin.tile = newTile;
-            coin.position = newTile.position;
-            coin.direction = newTile.arrowType;
+            coin.position.x = newTile.getX();
+            coin.position.y = newTile.getY();
+            coin.direction = newTile.getArrowType();
         }
     }
     // animate explosion
