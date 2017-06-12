@@ -1,11 +1,11 @@
 
 const HELP_OFFSET_X = 10;
 const HELP_OFFSET_Y = 10;
-const BOARD_POSITION_X = 10;
+const BOARD_POSITION_X = 30;
 const BOARD_POSITION_Y = 90;
 const BOARD_INITIAL_SIZE = 10;
 const FRAME_RATE = 100;
-const BUTTON_START_X = 370;
+const BUTTON_START_X = 360;
 const BUTTON_PADDING = 10;
 
 /// <reference path="../typings/index.d.ts" />
