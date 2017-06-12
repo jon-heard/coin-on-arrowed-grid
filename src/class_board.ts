@@ -17,10 +17,10 @@ export class Board {
         this.setSize(size);
     }
 
-    public randomize() {
+    public shuffle() {
         for (var y = 0; y < this.size; ++y) {
             for (var x = 0; x < this.size; ++x) {
-                this.tiles[y][x].randomizeDirection();
+                this.tiles[y][x].shuffleDirection();
             }
         }
     }

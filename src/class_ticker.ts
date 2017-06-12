@@ -7,7 +7,8 @@ export class Ticker {
         this.onFrameCallback = onFrameCallback;
     }
 
-    public start() {
+    public play() {
+        if (this.isRunning) { return; }
         this.isRunning = true;
         this.tickLoop(0);
     }

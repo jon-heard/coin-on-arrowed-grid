@@ -22,9 +22,10 @@ export class Tile {
             this.direction = direction;
             this.neighbors = [null, null, null, null];
             this.hasCoinMemory = false;
+            this.onClickCallback = onClickCallback;
             // tile
             this.tileSprite = new PIXI.Sprite(resources["tile_" + tileType].texture);
-            stage.addChild(this.tileSprite);
+            stage.addChildAt(this.tileSprite, 0);
             this.tileSprite.position.x = x;
             this.tileSprite.position.y = y;
             // arrow
@@ -39,13 +40,18 @@ export class Tile {
             this.tileSprite.interactive = true;
             this.tileSprite.buttonMode = true;
             this.tileSprite["tile"] = this;
-            this.tileSprite.on('mouseup', onClickCallback);
+            this.tileSprite.on('mouseup', this.onMouseUp.bind(this));
     }
 
     public destroy() {
         this.tileSprite.destroy();
         this.arrowSprite.destroy();
         this.coinMemorySprite.destroy();
+    }
+
+    public onMouseUp(event) {
+        event.target = this;
+        this.onClickCallback(event);
     }
 
     public getX() : number { return this.x; }
@@ -62,7 +68,7 @@ export class Tile {
         this.tileSprite.position.y = y;
     }
 
-    public randomizeDirection() {
+    public shuffleDirection() {
         var direction = Math.floor(Math.random() * 4);
         this.setDirection(direction);
     }
@@ -89,6 +95,7 @@ export class Tile {
     private direction : number;
     private neighbors : Array<Tile>;
     private hasCoinMemory : boolean;
+    private onClickCallback;
     // Media
     private tileSprite : PIXI.Sprite;
     private arrowSprite : PIXI.Sprite;
